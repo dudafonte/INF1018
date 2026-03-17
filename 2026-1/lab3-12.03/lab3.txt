@@ -1,0 +1,108 @@
+1. 
+#include <stdio.h>
+
+int main(void) {
+  unsigned int x = 0x87654321;
+  unsigned int y, z;
+
+  /* o byte menos significativo de x e os outros bits em 0 */
+  y = x & 0xFF;
+
+  /* o byte mais significativo com todos os bits em '1' 
+     e os outros bytes com o mesmo valor dos bytes de x */
+  z = x | 0xFF000000;
+
+  printf("0x%08x\n0x%08x\n", y, z);
+}
+RESULTADO:
+@dudafonte ➜ .../INF1018/2026-1/lab3-12.03/1 (main) $ gcc -Wall -o ex1 ex1.c
+@dudafonte ➜ .../INF1018/2026-1/lab3-12.03/1 (main) $ ./ex1 4.0
+0x00000021
+0xff654321
+
+2.
+#include <stdio.h>
+#include <stdlib.h>
+
+int odd_ones(unsigned int x)
+{
+    x ^= x >> 16;
+    x ^= x >> 8;
+    x ^= x >> 4;
+    x ^= x >> 2;
+    x ^= x >> 1;
+    
+    return (x & 1);
+}
+
+int main() {
+  printf("%x tem numero %s de bits\n",0x01010101,odd_ones(0x01010101) ? "impar":"par");
+  printf("%x tem numero %s de bits\n",0x01030101,odd_ones(0x01030101) ? "impar":"par");
+  return 0;
+}
+RESULTADO:
+@dudafonte ➜ .../INF1018/2026-1/lab3-12.03/2 (main) $ gcc -Wall -o ex2 ex2.c
+@dudafonte ➜ .../INF1018/2026-1/lab3-12.03/2 (main) $ ./ex2 4.0
+1010101 tem numero par de bits
+1030101 tem numero impar de bits
+
+3.
+a.
+#include <stdio.h>
+#include <stdlib.h>
+
+unsigned char switch_byte(unsigned char x)
+{   
+    x = (x >> 4) | (x << 4);
+    return x;
+}
+
+int main(void)
+{
+    unsigned char x = 0xAB;
+    unsigned char resp = switch_byte(x);
+    printf("antes: 0x%X\ndepois: 0x%X\n", x, resp);
+
+    return 0;
+}
+RESULTADO:
+@dudafonte ➜ .../INF1018/2026-1/lab3-12.03/3 (main) $ gcc -Wall -o ex3_a ex3_a.c
+@dudafonte ➜ .../INF1018/2026-1/lab3-12.03/3 (main) $ ./ex3_a 4.0
+antes: 0xAB
+depois: 0xBA
+
+b.
+#include <stdio.h>
+#include <stdlib.h>
+
+
+unsigned char rotate_left(unsigned char x, int n)
+{
+    return (x << n) | (x >> (8 - n));
+
+}
+
+
+int main(void) {
+    unsigned char x = 0x61; 
+    printf("Valor original: 0x%02X\n\n", x);
+    // Teste 1: Rotate left de 1 bit 
+    printf("Rotate Left (1 bit):  0x%02X\n", rotate_left(x, 1));
+    // Teste 2: Rotate left de 2 bits
+    printf("Rotate Left (2 bits): 0x%02X\n", rotate_left(x, 2));
+    // Teste 3: Rotate left de 7 bits 
+    printf("Rotate Left (7 bits): 0x%02X\n", rotate_left(x, 7));
+    // Teste Extra: Rotate left de 8 bits
+    printf("Rotate Left (8 bits): 0x%02X\n", rotate_left(x, 8));
+    return 0;
+}
+
+RESULTADO:
+@dudafonte ➜ .../INF1018/2026-1/lab3-12.03/3 (main) $ gcc -Wall -o ex3_b ex3_b.c
+@dudafonte ➜ .../INF1018/2026-1/lab3-12.03/3 (main) $ ./ex3_b 4.0
+Valor original: 0x61
+
+Rotate Left (1 bit):  0xC2
+Rotate Left (2 bits): 0x85
+Rotate Left (7 bits): 0xB0
+Rotate Left (8 bits): 0x61
