@@ -1,0 +1,61 @@
+1. 
+a função dump imprime o endereço de memória do ponteiro p e o valor de cada byte da memória 
+em hexadecimal.
+PARA:
+a.
+char c = 150 - 
+conversão de 150 para binário: 1001 0110
+em hexadecimal:                  9    6
+
+b.
+short s = -3 - complemento de dois:
+conversão de 3 em decimal para binário: 0011
+short tem 2 bytes = 16 bites, logo: 0000 0000 0000 0011
+1º passo - inverter                 1111 1111 1111 1100
+2º passo - somar 1                  1111 1111 1111 1101
+em hexadecimal:                       F    F    F    D
+
+c.
+int i = -151 - também é mais simples com complemento de dois:
+conversão de 151 em decimal para binário: 1001 01111
+int tem 4 bytes = 32 bites, logo: 0000 0000 0000 0000 0000 0000 1001 0111 
+1ª passo - inverter               1111 1111 1111 1111 1111 1111 0110 1000
+2º passo - somar 1                1111 1111 1111 1111 1111 1111 0110 1001
+em hexadecimal:                     F    F    F    F    F    F    6    9
+
+Após compilar e rodar o código:
+@dudafonte ➜ .../INF1018/2026-1/lab4-17.03/1 (main) $ gcc -Wall -o ex1 ex1.c 
+@dudafonte ➜ .../INF1018/2026-1/lab4-17.03/1 (main) $ ./ex1 
+dump de c: 
+0x7ffd0cac5cd1 - 96
+dump de s: 
+0x7ffd0cac5cd2 - fd
+0x7ffd0cac5cd3 - ff
+dump de i: 
+0x7ffd0cac5cd4 - 69
+0x7ffd0cac5cd5 - ff
+0x7ffd0cac5cd6 - ff
+0x7ffd0cac5cd7 - ff
+
+2.
+conversão de 32765 em decimal para binário: 111 1111 1111 1101
+short tem 2 bytes, logo: 0111 1111 1111 1101
+1º passo - inverter      1000 0000 0000 0010
+2º passo - somar 1       1000 0000 0000 0011
+em hexadecimal:            8    0    0    3
+
+conversão de 32771 em decimal para binário: 1000 0000 0000 0011
+unsigned short tem 2 bytes, logo: 1000 0000 0000 0011
+em hexadeciaml:                     8    0    0    3
+
+Após compilar e rodar o código:
+@dudafonte ➜ .../INF1018/2026-1/lab4-17.03/2 (main) $ gcc -Wall -o ex2 ex2.c 
+@dudafonte ➜ .../INF1018/2026-1/lab4-17.03/2 (main) $ ./ex2
+l=-32765, k=32771 
+dump de l: 
+0x7ffea1ccea44 - 03
+0x7ffea1ccea45 - 80
+dump de k: 
+0x7ffea1ccea46 - 03
+0x7ffea1ccea47 - 80
+
