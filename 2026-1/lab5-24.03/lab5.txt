@@ -1,0 +1,414 @@
+1.
+
+int b[2]:
+o array b ocupa 8 bytes, pois int ocupa 4 bytes, 4 x 2 = 8.
+e acredito que ele está armazenado em memória com 4 bits seguidos de 4 bits.
+
+short a[2][3]:
+o array b ocupa 12 bytes, pois short ocupa 2 bytes, logo 2 x 2 x 3 = 12.
+
+
+#include <stdio.h>
+#include <stdlib.h>
+
+void dump (void *p, int n) {
+  unsigned char *p1 = p;
+  while (n--) {
+    printf("%p - %02x\n", p1, *p1);
+    p1++;
+  }
+}
+
+
+int main (void) {
+  int i,j;
+  short a[2][3];
+  int b[2];
+
+  for (i=0;i<2;i++) {
+    b[i] = i;
+    for (j=0;j<3;j++)
+      a[i][j] = 3*i+j;
+  }
+
+  printf ("b: \n");
+  dump (b, sizeof(b));
+  printf ("a: \n");
+  dump (a, sizeof(a));
+
+  return 0;
+}
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab5-24.03/1 (main) $ gcc -Wall -o ex1 ex1.c 
+@dudafonte ➜ .../INF1018/2026-1/lab5-24.03/1 (main) $ ./ex1 
+b: 
+0x7ffd278a9d34 - 00
+0x7ffd278a9d35 - 00
+0x7ffd278a9d36 - 00
+0x7ffd278a9d37 - 00
+0x7ffd278a9d38 - 01
+0x7ffd278a9d39 - 00
+0x7ffd278a9d3a - 00
+0x7ffd278a9d3b - 00
+a: 
+0x7ffd278a9d3c - 00
+0x7ffd278a9d3d - 00
+0x7ffd278a9d3e - 01
+0x7ffd278a9d3f - 00
+0x7ffd278a9d40 - 02
+0x7ffd278a9d41 - 00
+0x7ffd278a9d42 - 03
+0x7ffd278a9d43 - 00
+0x7ffd278a9d44 - 04
+0x7ffd278a9d45 - 00
+0x7ffd278a9d46 - 05
+0x7ffd278a9d47 - 00
+
+
+2.
+
+#include <stdio.h>
+#include <stdlib.h>
+
+void dump (void *p, int n) {
+  unsigned char *p1 = p;
+  while (n--) {
+    printf("%p - %02x\n", p1, *p1);
+    p1++;
+  }
+}
+
+struct X {
+  int a;
+  short b;
+  int c;
+};
+
+int main(void)
+{
+    struct X x1;
+    printf("Infos da struct X:\n");
+    dump(&x1, sizeof(x1));
+    
+    return 0;
+}
+
+2.a
+@dudafonte ➜ .../INF1018/2026-1/lab5-24.03/2 (main) $ gcc -Wall -o ex2 ex2.c 
+@dudafonte ➜ .../INF1018/2026-1/lab5-24.03/2 (main) $ ./ex2 
+Infos da struct X:
+0x7fff0071424c - ac
+0x7fff0071424d - 76
+0x7fff0071424e - 00
+0x7fff0071424f - 00
+0x7fff00714250 - 40
+0x7fff00714251 - 43
+0x7fff00714252 - 71
+0x7fff00714253 - 00
+0x7fff00714254 - ff
+0x7fff00714255 - 7f
+0x7fff00714256 - 00
+0x7fff00714257 - 00
+
+struct X tem 12 bytes no total
+
+
+2.b
+struct X {
+  int a;
+  short b;
+  int c;
+} x = {0xa1a2a3a4, 0xb1b2, 0xc1c2c3c4};
+
+@dudafonte ➜ .../INF1018/2026-1/lab5-24.03/2 (main) $ ./ex2 
+Tamanho de struct X: 12
+
+Infos da struct X:
+0x7ffcaad0d72c - be
+0x7ffcaad0d72d - 78
+0x7ffcaad0d72e - 00
+0x7ffcaad0d72f - 00
+0x7ffcaad0d730 - 20
+0x7ffcaad0d731 - d8
+0x7ffcaad0d732 - d0
+0x7ffcaad0d733 - aa
+0x7ffcaad0d734 - fc
+0x7ffcaad0d735 - 7f
+0x7ffcaad0d736 - 00
+0x7ffcaad0d737 - 00
+
+
+tem um buraco porque para que o endereço ocupe a posição de memória,
+a posição precisa ser múltipla da quantidade de bytes do tipo que será alocado.
+
+
+3. 
+
+a.
+X1 é armazenado na memória com 1 byte de c1 (char) seguido de 3 bytes depois 4 bytes de i (int) 
+por fim mais 1 byte de c2 (char).
+
+b.
+X2 é armazenado na memória com 8 bytes de l (long) seguido de 1 byte de c (char), no entanto, a struct inteira deve
+ter tamanho múltiplo do maior alinhamento que nesse caso é 8 bytes, se ele tem 9 bytes no total (long + char), logo,
+ele precisa de mais 7 bytes para ser um múltiplo de 8, logo X2 tem 16 bytes.
+
+c.
+X3 é armazenado na memória com 4 bytes de i seguido de 1 byte de c1 (char) e depois mais 1 byte de c2 (char)
+que dão 6 bytes no total e para alcançar o tamanho múltiplo do maior alinhamento (4 bytes) ele precisa de mais 2 bytes,
+resultando em 8 bytes no total.
+
+d. 
+X4 é armazenado na memória com 16 bytes de X2 seguido de 1 byte de c (char) resultando em 17 bytes, apesar de X2 ter 16 bytes
+ele continua tendo como maior alinhamento 8 bytes (long), logo, o maior alinhamento de X4 também é 8 bytes, então seu tamanho final
+precisa ser múltiplo de 8, e o próximo múltiplo de 8 depois de 16 é 24, ele precisa de mais 7 bytes para alcançar os 24 bytes.
+
+e.
+X5 é armazenado na memória com 3 bytes de c1,c2 e c3 (char).
+
+f.
+X6 é armazenado na memória com 2 bytes de s1 (short), pula duas posições porque 2 e 3 não são múltiplos de
+4, depois ele aloca os 4 bytes de i (int), em seguida ele armazena 3 bytes de c[3] (char), depois pula novamente 1 espaço
+(porque 11 não é múltiplo de 2) e por fim aloca 2 bytes de s2 (short) e mais 2 bytes para que o tamanho seja múltiplo de 4 bytes, 
+no total tem 16 bytes.
+
+g.
+Como a union guarda o valor do maior alinhamento, apesar do maior tamanho ser char c[u] que tem 5 bytes 
+o maior é alinhamento é 4 bytes (int), então o tamanho final precisa ser múltiplo de 4 que é 8. 
+
+h.
+Novamente, apesar do maior tamanho ser de char c[5] (5 bytes) o maior alinhamento é 2 bytes de short o próximo múltiplo é 4 .
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+// a.
+struct X1 {
+  char c1;
+  int i;
+  char c2;
+} x1 = {0xc1, 0x01020304, 0xc2};
+
+// b.
+struct X2 {
+  long l;
+  char c;
+} x2 = {0x0102030405060708, 0xc1};
+
+// c.
+struct X3 {
+  int i;
+  char c1;
+  char c2;
+} x3 = {0x01020304, 0xc1, 0xc2};
+
+// d.
+struct X4 {
+  struct X2 x;
+  char c;
+} x4 = {{0x0102030405060708, 0xc1}, 0xc2};
+
+// e.
+struct X5 {
+  char c1;
+  char c2;
+  char c3;
+} x5 = {0xc1, 0xc2, 0xc3};
+
+// f.
+struct X6 {
+  short s1;
+  int i;
+  char c[3];
+  short s2;
+} x6 = {0x0102, 0x01020304, {0xc1, 0xc2, 0xc3}, 0x0102};
+
+// g.
+union U1 {
+  int i;
+  char c[5];
+};
+
+// h.
+union U2 {
+  short s;
+  char c[5];
+};
+
+
+
+void dump (void *p, int n) {
+  unsigned char *p1 = p;
+  while (n--) {
+    printf("%p - %02x\n", p1, *p1);
+    p1++;
+  }
+}
+
+int main(void) {
+    int i;
+
+    union U1 u1;
+    union U2 u2;
+
+printf("\nx1:\n");
+    dump(&x1, sizeof(x1));
+printf("\nx2:\n");
+    dump(&x2, sizeof(x2));
+printf("\nx3:\n");
+    dump(&x3, sizeof(x3));
+printf("\nx4:\n");
+    dump(&x4, sizeof(x4));
+printf("\nx5:\n");
+    dump(&x5, sizeof(x5));
+printf("\nx6:\n");
+    dump(&x6, sizeof(x6));
+
+    u1.i = 0x01020304;
+printf("\nu1 (int)\n");
+    dump(&u1, sizeof(u1));
+    for (i = 0; i <5; i++)
+      u1.c[i] = 0xcc;
+printf("u1 (char)\n");
+    dump(&u1, sizeof(u1));
+
+    u2.s = 0x0102;
+printf("\nu2 (short)\n");
+    dump(&u2, sizeof(u2));
+    for (i = 0; i <5; i++)
+      u2.c[i] = 0xcc;
+printf("u2 (char)\n");
+    dump(&u2, sizeof(u2));
+  return 0;
+}
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab5-24.03/3 (main) $ gcc -Wall -o ex3 ex3.c
+@dudafonte ➜ .../INF1018/2026-1/lab5-24.03/3 (main) $ ./ex3 
+
+x1:
+0x6128f8ce9010 - c1
+0x6128f8ce9011 - 00
+0x6128f8ce9012 - 00
+0x6128f8ce9013 - 00
+0x6128f8ce9014 - 04
+0x6128f8ce9015 - 03
+0x6128f8ce9016 - 02
+0x6128f8ce9017 - 01
+0x6128f8ce9018 - c2
+0x6128f8ce9019 - 00
+0x6128f8ce901a - 00
+0x6128f8ce901b - 00
+
+x2:
+0x6128f8ce9020 - 08
+0x6128f8ce9021 - 07
+0x6128f8ce9022 - 06
+0x6128f8ce9023 - 05
+0x6128f8ce9024 - 04
+0x6128f8ce9025 - 03
+0x6128f8ce9026 - 02
+0x6128f8ce9027 - 01
+0x6128f8ce9028 - c1
+0x6128f8ce9029 - 00
+0x6128f8ce902a - 00
+0x6128f8ce902b - 00
+0x6128f8ce902c - 00
+0x6128f8ce902d - 00
+0x6128f8ce902e - 00
+0x6128f8ce902f - 00
+
+x3:
+0x6128f8ce9030 - 04
+0x6128f8ce9031 - 03
+0x6128f8ce9032 - 02
+0x6128f8ce9033 - 01
+0x6128f8ce9034 - c1
+0x6128f8ce9035 - c2
+0x6128f8ce9036 - 00
+0x6128f8ce9037 - 00
+
+x4:
+0x6128f8ce9040 - 08
+0x6128f8ce9041 - 07
+0x6128f8ce9042 - 06
+0x6128f8ce9043 - 05
+0x6128f8ce9044 - 04
+0x6128f8ce9045 - 03
+0x6128f8ce9046 - 02
+0x6128f8ce9047 - 01
+0x6128f8ce9048 - c1
+0x6128f8ce9049 - 00
+0x6128f8ce904a - 00
+0x6128f8ce904b - 00
+0x6128f8ce904c - 00
+0x6128f8ce904d - 00
+0x6128f8ce904e - 00
+0x6128f8ce904f - 00
+0x6128f8ce9050 - c2
+0x6128f8ce9051 - 00
+0x6128f8ce9052 - 00
+0x6128f8ce9053 - 00
+0x6128f8ce9054 - 00
+0x6128f8ce9055 - 00
+0x6128f8ce9056 - 00
+0x6128f8ce9057 - 00
+
+x5:
+0x6128f8ce9058 - c1
+0x6128f8ce9059 - c2
+0x6128f8ce905a - c3
+
+x6:
+0x6128f8ce9060 - 02
+0x6128f8ce9061 - 01
+0x6128f8ce9062 - 00
+0x6128f8ce9063 - 00
+0x6128f8ce9064 - 04
+0x6128f8ce9065 - 03
+0x6128f8ce9066 - 02
+0x6128f8ce9067 - 01
+0x6128f8ce9068 - c1
+0x6128f8ce9069 - c2
+0x6128f8ce906a - c3
+0x6128f8ce906b - 00
+0x6128f8ce906c - 02
+0x6128f8ce906d - 01
+0x6128f8ce906e - 00
+0x6128f8ce906f - 00
+
+u1 (int)
+0x7ffe936adf10 - 04
+0x7ffe936adf11 - 03
+0x7ffe936adf12 - 02
+0x7ffe936adf13 - 01
+0x7ffe936adf14 - fe
+0x7ffe936adf15 - 7f
+0x7ffe936adf16 - 00
+0x7ffe936adf17 - 00
+u1 (char)
+0x7ffe936adf10 - cc
+0x7ffe936adf11 - cc
+0x7ffe936adf12 - cc
+0x7ffe936adf13 - cc
+0x7ffe936adf14 - cc
+0x7ffe936adf15 - 7f
+0x7ffe936adf16 - 00
+0x7ffe936adf17 - 00
+
+u2 (short)
+0x7ffe936adf0a - 02
+0x7ffe936adf0b - 01
+0x7ffe936adf0c - 7a
+0x7ffe936adf0d - 7e
+0x7ffe936adf0e - 00
+0x7ffe936adf0f - 00
+u2 (char)
+0x7ffe936adf0a - cc
+0x7ffe936adf0b - cc
+0x7ffe936adf0c - cc
+0x7ffe936adf0d - cc
+0x7ffe936adf0e - cc
+0x7ffe936adf0f - 00
