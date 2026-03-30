@@ -1,0 +1,40 @@
+1.
+As correspondências que eu encontrei:
+int nums[] = {10, -21, -30, 45}; <- é igual a ->   .data
+                                                    nums:  .int  10, -21, -30, 45
+Sf: .string "%d\n" <- é igual a isso -> "%d\n" (do printf)
+
+int main() {  <- é igual a -> .text
+                              .globl  main
+                               main:
+
+
+# isso é i = 0, pois movl = 4 bytes e está sendo atribuído a ebx o valor 0
+movl  $0, %ebx  /* ebx = 0; */
+
+# aqui ele está dizendo que p = nums
+movq  $nums, %r12  /* r12 = &nums
+
+# aqui ele diz "se i (em C) é igual a 4 pula para L2 
+L1: 
+cmpl $4, %ebx 
+je L2 
+# se i (em C) for diferente de 4 então: 
+# 
+movl (%r12), %eax
+# e então ele imprime o valor 
+printf("%d\n") <- é igual a isso -> movq $Sf, %rdi  
+                                    movl %eax, %esi 
+                                    call printf
+
+# depois ele incremeta i (em C)
+addl $1 %ebx <- é igual a isso -> i++ 
+# e incrementa o ponteiro p (em C)
+addq $4, %r12 <- é igual a isso -> p++ 
+# depois volta para o início do loop 
+jmp L1 
+
+# aqui é basicamente o que ele faz quando a condição de parada do loop é satisfeita 
+L2: 
+movq $0
+
