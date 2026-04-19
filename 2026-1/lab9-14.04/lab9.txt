@@ -1,0 +1,146 @@
+1:
+
+assembly:
+.globl adicao
+adicao:
+
+addl    %esi, %edi
+addl    %edx, %edi 
+movl    %edi, %eax 
+ret
+
+c:
+#include <stdio.h>
+
+int adicao (int a, int b, int c);
+
+int main (void) {
+   printf("%d\n", adicao(1,2,3));
+   return 0;
+}
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab9-14.04/1 (main) $ gcc -Wall -no-pie -o resp add.s ex1.c
+/usr/bin/ld: warning: /tmp/ccUr9gVe.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab9-14.04/1 (main) $ ./resp
+6
+
+2:
+
+assembly:
+.globl fat
+fat:
+    pushq   %rbp 
+    movq    %rsp, %rbp 
+    pushq   %rbx
+
+    movl    %edi, %ebx
+
+    cmpl    $0, %edi 
+    je      label_base 
+
+    subl    $1, %edi 
+    call    fat 
+
+    imull   %ebx, %eax 
+    jmp     label_fim 
+
+label_base:
+    movl    $1, %eax 
+
+label_fim:
+    popq    %rbx
+    leave
+    ret
+
+c:
+#include <stdio.h>
+
+int fat(int n);
+
+int main(void)
+{
+    int n = 5;
+    printf("fat(%d) = %d\n", n, fat(n));
+    return 0;
+}
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab9-14.04/2 (main) $ gcc -Wall -no-pie -o resp2 fat.s ex2.c
+fat.s: Assembler messages:
+fat.s: Warning: end of file not at end of a line; newline inserted
+/usr/bin/ld: warning: /tmp/cccWWQs9.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab9-14.04/2 (main) $ ./resp2
+fat(5) = 120
+
+3: 
+
+assembly:
+.globl foo
+foo:
+    /*prologo */
+    pushq   %rbp
+    movq    %rsp, %rbp 
+    pushq   %rbx 
+    pushq   %r12 
+    pushq   %r13 
+    pushq   %r14 
+
+    /*inicio*/
+    movq    %rdi, %r14 
+    movl    %esi, %r13d 
+    movl    $0, %ebx 
+    movl    $0, %r12d
+
+L1:
+    cmpl    %r13d, %r12d
+    jge L_fim 
+
+    movl    (%r14, %r12, 4), %eax 
+    addl    %eax, %ebx
+
+    cmpl    $0, %eax
+    jne L_prox
+
+    movl    %ebx, (%r14, %r12, 4)
+    movl    $0, %ebx
+
+L_prox:
+    addl    $1, %r12d 
+    jmp L1 
+
+L_fim:
+    popq    %r14 
+    popq    %r13 
+    popq    %r12 
+    popq    %rbx 
+    leave
+    ret 
+
+c:
+#include <stdio.h>
+
+void foo(int a[], int n);
+
+int main(void)
+{
+    int a[] = {2,4,5,0,7};
+    int n = 5;
+    foo(a, n);
+    for (int i = 0; i < n; i++)
+    {
+        printf("%d ", a[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab9-14.04/3 (main) $ gcc -Wall -no-pie -o resp3 foo.s ex3.c 
+/usr/bin/ld: warning: /tmp/cc9jCbOj.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab9-14.04/3 (main) $ ./resp3
+2 4 5 11 7 
