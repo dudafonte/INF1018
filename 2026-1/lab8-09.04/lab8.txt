@@ -1,0 +1,167 @@
+1. 
+c:
+  #include <stdlib.h>
+
+  
+  int main() {
+    system("ls -ls");
+    return 0;
+  }
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab8-09.04/1 (main) $ gcc -Wall -o ex1 ex1.c
+@dudafonte ➜ .../INF1018/2026-1/lab8-09.04/1 (main) $ ./ex1 
+total 20
+16 -rwxrwxrwx 1 codespace codespace 15960 Apr 19 14:40 ex1
+ 4 -rw-rw-rw- 1 codespace codespace    80 Apr 19 14:39 ex1.c
+ 0 -rw-rw-rw- 1 codespace codespace     0 Apr 19 14:39 ex1.s
+
+assembly: 
+  .data
+  s1: .string "ls -ls"
+
+  .text
+  .globl main
+  main:
+  /* prologo */
+    pushq %rbp
+    movq  %rsp, %rbp
+
+  /* coloque seu codigo aqui */
+  leaq  s1(%rip), %rdi
+  call  system
+  movl  $0, %eax
+
+  /* finalizacao */
+    leave
+    ret
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab8-09.04/1 (main) $ gcc -Wall -no-pie -o ex1 ex1.s
+ex1.s: Assembler messages:
+ex1.s: Warning: end of file not at end of a line; newline inserted
+/usr/bin/ld: warning: /tmp/cclXVoMq.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab8-09.04/1 (main) $ ./ex1 
+total 24
+16 -rwxrwxrwx 1 codespace codespace 15832 Apr 19 14:50 ex1
+ 4 -rw-rw-rw- 1 codespace codespace    80 Apr 19 14:39 ex1.c
+ 4 -rw-rw-rw- 1 codespace codespace   240 Apr 19 14:49 ex1.s
+
+
+2:
+c:
+
+int filtro(int x, int lim) {
+  if (x < lim)
+    return 0;
+  else
+    return x;
+}
+
+#include <stdio.h>
+#define LIM 1
+
+int filtro(int x, int lim);
+
+int nums[5] = {3,-5,7,8,-2};
+
+int main() {
+  int i;
+  int *p = nums;
+  for (i = 0; i < 5; i++) {
+    printf("%d\n", filtro(*p,LIM));
+    p++;
+  }
+  return 0;
+}
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab8-09.04/2 (main) $ gcc -Wall -no-pie -o ex2 filtro.c ex2
+.c
+@dudafonte ➜ .../INF1018/2026-1/lab8-09.04/2 (main) $ ./ex2 
+3
+0
+7
+8
+0
+
+assembly:
+
+filtro.s:
+.globl filtro
+filtro:
+ 
+ pushq %rbp 
+ movq  %rsp, %rbp 
+
+cmpl %esi, %edi
+jl  label_else
+
+movl %edi, %eax
+jmp label_fim
+
+label_else:
+movl $0, %eax
+
+label_fim:
+ leave
+ ret
+
+ex2.s:
+  .data
+  nums: .int 3, -5, 7, 8, -2
+  s1:   .string "%d\n"
+
+  .text
+  .globl main
+  main:
+  /* prologo */
+     pushq %rbp
+     movq  %rsp, %rbp
+     subq  $16, %rsp
+     movq  %rbx, -8(%rbp)
+     movq  %r12, -16(%rbp)
+
+  /* coloque seu codigo aqui */ 
+  movq  $nums, %r12
+  movl $0, %ebx
+  L1:
+    cmpl $5, %ebx
+    je L2
+
+    movl (%r12), %edi
+    movl $1, %esi
+    call filtro 
+    /*************************************************************/
+    /* este trecho imprime o valor de %eax (estraga %eax)  */
+    leaq s1(%rip), %rdi  /* primeiro parametro (ponteiro)*/
+    movl   %eax, %esi    /* segundo parametro  (inteiro) */
+    movl    $0, %eax   
+    call  printf       /* chama a funcao da biblioteca */
+    /*************************************************************/
+    addq $4, %r12
+    addl $1, %ebx 
+    jmp L1 
+
+L2: 
+  /* finalizacao */
+     movq -8(%rbp), %rbx
+     movq -16(%rbp), %r12
+     leave
+     ret
+  
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab8-09.04/2 (main) $ gcc -Wall -no-pie -o ex2 ex2.s filtro.s
+ex2.s: Assembler messages:
+ex2.s: Warning: end of file not at end of a line; newline inserted
+filtro.s: Assembler messages:
+filtro.s: Warning: end of file not at end of a line; newline inserted
+/usr/bin/ld: warning: /tmp/ccHcVoLI.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab8-09.04/2 (main) $ ./ex2 
+3
+0
+7
+8
+0

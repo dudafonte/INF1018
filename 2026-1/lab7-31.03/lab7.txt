@@ -1,0 +1,330 @@
+1.
+/*
+char S2[] = {65, 108, 111, 32, 123, 103, 97, 108, 101, 114, 97, 125, 33, 0};
+int main (void) {
+  char *pc = S2;
+  while (*pc)
+    printf ("%c", *pc++);
+  printf("\n");
+  return 0;
+}
+*/
+
+.data
+S2:    .byte 65, 108, 111, 32, 123, 103, 97, 108, 101, 114, 97, 125, 33, 0 <- equivale a -> char S2[] = {65, 108, 111, 32, 123, 103, 97, 108, 101, 114, 97, 125, 33, 0};
+Sf:  .string "%c"    /* primeira string de formato para printf */
+Sf2: .string "\n"    /* segunda string de formato para printf */
+
+
+CORRESPONDÊNCIAS: 
+
+.data
+S2:    .byte 65, 108, 111, 32, 123, 103, 97, 108, 101, 114, 97, 125, 33, 0 <- equivale a -> char S2[] = {65, 108, 111, 32, 123, 103, 97, 108, 101, 114, 97, 125, 33, 0};
+Sf:  .string "%c"    /* primeira string de formato para printf */
+Sf2: .string "\n"    /* segunda string de formato para printf */
+
+.text
+.globl  main
+main: <- equivale a -> int main(void){...} declaração da função
+
+/********************************************************/
+/* mantenha este trecho aqui e nao mexa - prologo !!!   */
+  pushq   %rbp
+  movq    %rsp, %rbp
+  subq    $16, %rsp
+  movq    %rbx, -8(%rbp)  /* guarda rbx */
+  movq    %r12, -16(%rbp)  /* guarda r12 */
+/********************************************************/
+
+
+  movq $S2, %r12 <- equivale a -> char *pc = S2 
+L1:
+  cmpb $0, (%r12) <- equivale a -> while (*pc)
+  je L2 
+
+  movsbl (%r12), %eax <- esse trecho atribui a um registrador de 8 bytes o conteúdo da memória apontado por (%r12)
+
+/*************************************************************/
+/* este trecho imprime o valor de %eax (estraga %eax)  */
+  movq    $Sf, %rdi    /* primeiro parametro (ponteiro)*/
+  movl    %eax, %esi   /* segundo parametro  (inteiro) */
+  movl  $0, %eax
+  call  printf       /* chama a funcao da biblioteca */
+/*************************************************************/
+todo esse trecho equivale a -> printf("%c") que vai imprimir os carcteres que equivalem a esses valores na tabela ASCII
+
+  addq $1, %r12 <- equivale a -> *pc++ 
+  jmp L1
+
+L2: 
+/*************************************************************/
+/* este trecho imprime o \n (estraga %eax)                  */
+  movq    $Sf2, %rdi    /* primeiro parametro (ponteiro)*/
+  movl  $0, %eax
+  call  printf       /* chama a funcao da biblioteca */
+/*************************************************************/
+esse trecho equivale a -> printf("\n")
+
+
+/***************************************************************/
+/* mantenha este trecho aqui e nao mexa - finalizacao!!!!      */
+  movq  $0, %rax  /* rax = 0  (valor de retorno) */
+  movq    -16(%rbp), %r12 /* recupera r12 */
+  movq    -8(%rbp), %rbx  /* recupera rbx */
+  leave
+  ret      
+/***************************************************************/
+esse trecho finaliza a função <- return 0
+
+
+
+2.
+
+C:
+
+#include <stdio.h>
+
+char S2[] = {65, 108, 111, 32, 123, 103, 97, 108, 101, 114, 97, 125, 33, 0};
+
+int main (void) {
+
+  for (char *pc=S2; *pc != '\0'; pc++)
+  {
+    if (*pc == 123 || *pc == 125)
+    {
+        continue;
+    }
+    printf("%c", *pc);
+  }
+  printf("\n");
+  return 0;
+}
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab7-31.03/2 (main) $ gcc -Wall -o ex2 ex2.c
+@dudafonte ➜ .../INF1018/2026-1/lab7-31.03/2 (main) $ ./ex2
+Alo galera!
+
+
+ASSEMBLY:
+
+.data
+S2:    .byte 65, 108, 111, 32, 123, 103, 97, 108, 101, 114, 97, 125, 33, 0
+Sf:  .string "%c"    /* primeira string de formato para printf */
+Sf2: .string "\n"    /* segunda string de formato para printf */
+
+.text
+.globl  main
+main:
+
+/********************************************************/
+/* mantenha este trecho aqui e nao mexa - prologo !!!   */
+  pushq   %rbp
+  movq    %rsp, %rbp
+  subq    $16, %rsp
+  movq    %rbx, -8(%rbp)  /* guarda rbx */
+  movq    %r12, -16(%rbp)  /* guarda r12 */
+/********************************************************/
+
+  movq  $S2, %r12  /* r12 = &S2 */
+
+L1:
+  cmpb  $0, (%r12)  /* if (*pc == 0) ? */
+  je  L2          /* goto L2 */
+  cmpb  $123, (%r12) 
+  je  K1
+  cmpb  $125, (%r12)
+  je  K1
+
+  movsbl  (%r12), %eax    /* eax = *r12 (estendendo o byte para 32 bits) */
+
+/*************************************************************/
+/* este trecho imprime o valor de %eax (estraga %eax)  */
+  movq    $Sf, %rdi    /* primeiro parametro (ponteiro)*/
+  movl    %eax, %esi   /* segundo parametro  (inteiro) */
+  movl  $0, %eax
+  call  printf       /* chama a funcao da biblioteca */
+/*************************************************************/
+
+  addq  $1, %r12  /* r12 += 1; */
+  jmp  L1         /* goto L1; */
+
+K1:
+  addq $1, %r12 
+  jmp  L1 
+
+L2:  
+/*************************************************************/
+/* este trecho imprime o \n (estraga %eax)                  */
+  movq    $Sf2, %rdi    /* primeiro parametro (ponteiro)*/
+  movl  $0, %eax
+  call  printf       /* chama a funcao da biblioteca */
+/*************************************************************/
+
+/***************************************************************/
+/* mantenha este trecho aqui e nao mexa - finalizacao!!!!      */
+  movq  $0, %rax  /* rax = 0  (valor de retorno) */
+  movq    -16(%rbp), %r12 /* recupera r12 */
+  movq    -8(%rbp), %rbx  /* recupera rbx */
+  leave
+  ret      
+/***************************************************************/
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab7-31.03/2 (main) $ gcc -no-pie -o ex2 ex2.s
+/usr/bin/ld: warning: /tmp/ccoUHcve.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab7-31.03/2 (main) $ ./ex2
+Alo galera!
+
+
+3.
+
+C:
+#include <stdio.h>
+
+int main(void)
+{
+    for (int i = 1; i <= 10; i++)
+    {
+        int quadrado = i * i;
+        printf("%d^%d: %d\n", i, i, quadrado);
+    }
+    return 0;
+}
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab7-31.03/3 (main) $ gcc -Wall -o ex3 ex3.c 
+@dudafonte ➜ .../INF1018/2026-1/lab7-31.03/3 (main) $ ./ex3 
+1^1: 1
+2^2: 4
+3^3: 9
+4^4: 16
+5^5: 25
+6^6: 36
+7^7: 49
+8^8: 64
+9^9: 81
+10^10: 100
+
+
+ASSEMBLY:
+
+.data
+Sf:  .string "%d\n"  
+
+.text
+.globl  main
+main:
+
+/********************************************************/
+/* mantenha este trecho aqui e nao mexa - prologo !!!   */
+  pushq   %rbp
+  movq    %rsp, %rbp
+  subq    $16, %rsp
+  movq    %rbx, -8(%rbp)  /* guarda rbx */
+  movq    %r12, -16(%rbp)  /* guarda r12 */
+/********************************************************/
+
+  addl   $1, %ebx
+
+L1:
+  cmpl   $10, %ebx 
+  jae L2 
+
+  movl   %ebx, %eax
+  imull  %eax, %eax 
+
+  /*************************************************************/
+  /* este trecho imprime o valor de %eax (estraga %eax)  */
+  movq    $Sf, %rdi    /* primeiro parametro (ponteiro)*/
+  movl    %eax, %esi   /* segundo parametro  (inteiro) */
+  movl    $0,   %eax
+  call    printf       /* chama a funcao da biblioteca */
+  /*************************************************************/
+
+  addl   $1,   %ebx
+  jmp L1
+
+L2:  
+  /***************************************************************/
+  /* mantenha este trecho aqui e nao mexa - finalizacao!!!!      */
+  movq     $0, %rax  /* rax = 0  (valor de retorno) */
+  movq    -16(%rbp), %r12 /* recupera r12 */
+  movq    -8(%rbp), %rbx  /* recupera rbx */
+  leave
+  ret      
+  /***************************************************************/
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab7-31.03/3 (main) $ gcc -no-pie -o ex3 ex3.s
+/usr/bin/ld: warning: /tmp/ccxppjaH.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab7-31.03/3 (main) $ ./ex3 
+1
+4
+9
+16
+25
+36
+49
+64
+81
+100
+
+
+4.
+.data
+nums: .int 65, -105, 111, 34
+fmt:  .string "soma = %d\n"
+
+.text
+.globl main
+main:
+
+/********************************************************/
+/* Prólogo                                              */
+  pushq   %rbp
+  movq    %rsp, %rbp
+  subq    $16, %rsp
+  movq    %rbx, -8(%rbp)  
+  movq    %r12, -16(%rbp) 
+/********************************************************/
+
+  movl $0, %ebx    # ebx (soma = 0)
+  movl $0, %ecx    # ecx (i = 0)
+
+L1:
+  cmpl $4, %ecx    # Compara i com 4
+  jge L2           # Se i >= 4, sai do loop
+
+  # Cálculo do endereço e acesso: nums[i]
+  # Usamos movslq para estender o índice i (32 bits) para 64 bits (rcx)
+  movslq %ecx, %rax
+  
+  # Pegamos o valor em nums + (rax * 4) e somamos em ebx (s)
+  # A escala é 4 porque sizeof(int) = 4
+  addl nums(,%rax,4), %ebx 
+
+  incl %ecx        # i++
+  jmp L1           # Volta para o início do loop
+
+L2:
+  # Preparação para o printf("soma = %d\n", s)
+  movq $fmt, %rdi  # Primeiro argumento: string de formato
+  movl %ebx, %esi  # Segundo argumento: o valor da soma (s)
+  movl $0, %eax    # Limpa eax (padrão para funções variádicas como printf)
+  call printf
+
+/***************************************************************/
+/* Finalização                                                 */
+  movq $0, %rax    # valor de retorno 0
+  movq -16(%rbp), %r12
+  movq -8(%rbp), %rbx
+  leave
+  ret
+/***************************************************************/
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab7-31.03/4 (main) $ gcc -no-pie -o ex4 ex4.s
+/usr/bin/ld: warning: /tmp/ccE6jvWr.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab7-31.03/4 (main) $ ./ex4 
+soma = 105
