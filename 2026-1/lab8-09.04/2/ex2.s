@@ -39,16 +39,3 @@ L2:
      movq -16(%rbp), %r12
      leave
      ret
-
-OUTRA SAÍDA:
-@dudafonte ➜ .../INF1018/2026-1/lab8-09.04/2 (main) $ gcc -Wall -no-pie -o ex2asm filtro.c ex2.s
-ex2.s: Assembler messages:
-ex2.s: Warning: end of file not at end of a line; newline inserted
-/usr/bin/ld: warning: /tmp/ccg10R5i.o: missing .note.GNU-stack section implies executable stack
-/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
-@dudafonte ➜ .../INF1018/2026-1/lab8-09.04/2 (main) $ ./ex2asm
-3
-0
-7
-8
-0
