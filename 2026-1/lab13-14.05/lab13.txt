@@ -1,0 +1,401 @@
+1.
+
+tradução de foo para assembly:
+int foo (int x) {
+  return x+1;
+}
+
+.text 
+.globl foo
+foo:
+    pushq   %rbp
+    movq    %rsp, %rbp
+    #subq    $..., %rsp 
+
+    movl    %edi, %eax 
+    incl    %eax 
+
+    leave
+    ret
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------->>>
+
+2.
+
+
+traduzindo para linguagem de máquina 
+SAÍDA:
+@dudafonte ➜ /workspaces/INF1018/2026-1/lab13-14.05 (main) $ gcc -c -o foo.o foo.s
+foo.s: Assembler messages:
+foo.s: Warning: end of file not at end of a line; newline inserted
+
+gerando o Disassembly:
+@dudafonte ➜ /workspaces/INF1018/2026-1/lab13-14.05 (main) $ objdump -d foo.o > foo.d
+
+foo.d:
+
+foo.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <foo>:
+   0:	55                   	push   %rbp
+   1:	48 89 e5             	mov    %rsp,%rbp
+   4:	89 f8                	mov    %edi,%eax
+   6:	ff c0                	inc    %eax
+   8:	c9                   	leave
+   9:	c3                   	ret
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------->>>
+
+3.
+
+c:
+// includes padrão
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
+
+
+//minhas variávies globais
+unsigned char codigo[] = {
+    0x55,                       //pushq
+    0x48, 0x89, 0xe5,           // mov    %rsp,%rbp
+    0x89, 0xf8,                 // mov    %edi,%eax
+    0xff, 0xc0,                 // inc    %eax
+    0xc9,                       // leave
+    0xc3                        // ret
+};
+
+// meus includes 
+
+// minhas constantes e macros 
+#define PAGE_START(P) ((intptr_t)(P)&~(pagesize-1))
+#define PAGE_END(P) (((intptr_t)(P)+pagesize-1)&~(pagesize-1))
+
+// meus protótipos de funções 
+int bar(int x);
+int execpage(void *ptr, size_t len);
+
+// meus tipos 
+typedef int (*funcp) (int x);
+typedef unsigned int uint32;
+
+
+int bar(int x)
+{
+    return x + 1;
+}
+
+int main()
+{
+    int a = 5;
+    int b;
+    funcp f;         // f é ponteiro para função
+
+    if (execpage(codigo, sizeof(codigo)) == -1)
+    {
+        perror("execpage");
+        return 1;
+    }
+
+    b = bar(a);
+    printf("bar(%d) = %d\n", a, b);
+
+    f = bar;                        // f aponta para a função bar
+    b = f(a);                       // chama a função através do ponteiro
+    printf("f(%d) = %d\n", a, b);
+    
+    f = (funcp)codigo;              // f aponta para o código de memória
+    b = f(a);                       // chama a função através do ponteiro
+    printf("f(%d) = %d\n", a, b);
+
+    return 0;
+}
+
+int execpage(void *ptr, size_t len) {
+	int ret;
+
+	const long pagesize = sysconf(_SC_PAGE_SIZE);
+	if (pagesize == -1)
+		return -1;
+
+	ret = mprotect((void *)PAGE_START(ptr),
+		 PAGE_END((intptr_t)ptr + len) - PAGE_START(ptr),
+		 PROT_READ | PROT_WRITE | PROT_EXEC);
+	if (ret == -1)
+		return -1;
+
+	return 0;
+}
+
+#undef PAGE_START
+#undef PAGE_END
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab13-14.05/3 (main) $ gcc -Wall -Wa,--execstack -o ex3 ex3.c
+/usr/bin/ld: warning: /tmp/ccdaBsKF.o: requires executable stack (because the .note.GNU-stack section is executable)
+@dudafonte ➜ .../INF1018/2026-1/lab13-14.05/3 (main) $ ./ex3 
+bar(5) = 6
+f(5) = 6
+f(5) = 6
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------->>>
+
+4.
+
+int foo (int x) {
+  return add(x);
+}
+
+tradução da funçaõ para assembly:
+
+.text 
+.globl foo4 
+foo4:
+    # salvar o RA da chamadora e criar o RA 
+    pushq   %rbp 
+    movq    %rsp, %rbp 
+
+    # salvar callee-saved 
+
+    # preparar os parâmetros
+    # já estão no edi 
+    call add 
+
+    # restaurar o callee-saved 
+    # remover RA 
+    leave 
+
+    # retornar 
+    ret 
+
+gerando o objdump:
+
+foo4.d:
+
+foo4.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <foo4>:
+   0:	55                   	push   %rbp
+   1:	48 89 e5             	mov    %rsp,%rbp
+   4:	e8 00 00 00 00       	call   9 <foo4+0x9>
+   9:	c9                   	leave
+   a:	c3                   	ret
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------->>>
+
+5.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
+
+
+//minhas variávies globais
+
+unsigned char codigo[] = {
+   0x55,                           // push   %rbp
+   0x48, 0x89, 0xe5,               // mov    %rsp,%rbp
+   0xe8, 0x00, 0x00, 0x00, 0x00,   // call   9 <foo4+0x9>
+   0xc9,                           // leave
+   0xc3,                           // ret
+};
+
+// meus includes 
+
+// minhas constantes e macros 
+#define PAGE_START(P) ((intptr_t)(P)&~(pagesize-1))
+#define PAGE_END(P) (((intptr_t)(P)+pagesize-1)&~(pagesize-1))
+
+// meus protótipos de funções 
+int bar(int x);
+int execpage(void *ptr, size_t len);
+
+// meus tipos 
+typedef int (*funcp) (int x);
+typedef unsigned int uint32;
+
+int add (int x) {
+  return x+1;
+}
+
+int bar(int x)
+{
+    return x + 1;
+}
+
+int main()
+{
+    int a = 5;
+    int b;
+    funcp f;         // f é ponteiro para função
+
+    if (execpage(codigo, sizeof(codigo)) == -1)
+    {
+        perror("execpage");
+        return 1;
+    }
+
+    b = bar(a);
+    printf("bar(%d) = %d\n", a, b);
+
+    f = bar;                        // f aponta para a função bar
+    b = f(a);                       // chama a função através do ponteiro
+    printf("f(%d) = %d\n", a, b);
+    
+    int offset;
+    offset = (long)add - ((long)codigo+9);       // funcao - rip;
+    *(int*)(codigo+5) = offset;
+
+    f = (funcp)codigo;              // f aponta para o código de memória
+    b = f(a);                       // chama a função através do ponteiro
+    printf("f(%d) = %d\n", a, b);
+
+    return 0;
+}
+
+int execpage(void *ptr, size_t len) {
+	int ret;
+
+	const long pagesize = sysconf(_SC_PAGE_SIZE);
+	if (pagesize == -1)
+		return -1;
+
+	ret = mprotect((void *)PAGE_START(ptr),
+		 PAGE_END((intptr_t)ptr + len) - PAGE_START(ptr),
+		 PROT_READ | PROT_WRITE | PROT_EXEC);
+	if (ret == -1)
+		return -1;
+
+	return 0;
+}
+
+#undef PAGE_START
+#undef PAGE_END
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab13-14.05/3 (main) $ gcc -Wall -Wa,--execstack -o ex3 ex3.c
+/usr/bin/ld: warning: /tmp/ccUkq3fs.o: requires executable stack (because the .note.GNU-stack section is executable)
+@dudafonte ➜ .../INF1018/2026-1/lab13-14.05/3 (main) $ ./ex3 
+bar(5) = 6
+f(5) = 6
+f(5) = 6
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------->>>
+
+6.
+
+// includes padrão
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
+
+
+//minhas variávies globais
+// unsigned char codigo[] = {
+//     0x55,                       //pushq
+//     0x48, 0x89, 0xe5,           // mov    %rsp,%rbp
+//     0x89, 0xf8,                 // mov    %edi,%eax
+//     0xff, 0xc0,                 // inc    %eax
+//     0xc9,                       // leave
+//     0xc3                        // ret
+// };
+
+unsigned char codigo[] = {
+
+   0xe9, 0x00, 0x00, 0x00, 0x00,   // call   9 <foo4+0x9>
+};
+
+// meus includes 
+
+// minhas constantes e macros 
+#define PAGE_START(P) ((intptr_t)(P)&~(pagesize-1))
+#define PAGE_END(P) (((intptr_t)(P)+pagesize-1)&~(pagesize-1))
+
+// meus protótipos de funções 
+int bar(int x);
+int execpage(void *ptr, size_t len);
+
+// meus tipos 
+typedef int (*funcp) (int x);
+typedef unsigned int uint32;
+
+int add (int x) {
+  return x+1;
+}
+
+int bar(int x)
+{
+    return x + 1;
+}
+
+int main()
+{
+    int a = 5;
+    int b;
+    funcp f;         // f é ponteiro para função
+
+    if (execpage(codigo, sizeof(codigo)) == -1)
+    {
+        perror("execpage");
+        return 1;
+    }
+
+    b = bar(a);
+    printf("bar(%d) = %d\n", a, b);
+
+    f = bar;                        // f aponta para a função bar
+    b = f(a);                       // chama a função através do ponteiro
+    printf("f(%d) = %d\n", a, b);
+    
+    int offset;
+    offset = (long)add - ((long)codigo+5);       // funcao - rip;
+    *(int*)(codigo+1) = offset;
+
+    f = (funcp)codigo;              // f aponta para o código de memória
+    b = f(a);                       // chama a função através do ponteiro
+    printf("f(%d) = %d\n", a, b);
+
+    return 0;
+}
+
+int execpage(void *ptr, size_t len) {
+	int ret;
+
+	const long pagesize = sysconf(_SC_PAGE_SIZE);
+	if (pagesize == -1)
+		return -1;
+
+	ret = mprotect((void *)PAGE_START(ptr),
+		 PAGE_END((intptr_t)ptr + len) - PAGE_START(ptr),
+		 PROT_READ | PROT_WRITE | PROT_EXEC);
+	if (ret == -1)
+		return -1;
+
+	return 0;
+}
+
+#undef PAGE_START
+#undef PAGE_END
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab13-14.05/3 (main) $ gcc -Wall -Wa,--execstack -o ex3 ex3.c
+/usr/bin/ld: warning: /tmp/cc5kYuqY.o: requires executable stack (because the .note.GNU-stack section is executable)
+@dudafonte ➜ .../INF1018/2026-1/lab13-14.05/3 (main) $ ./ex3 
+bar(5) = 6
+f(5) = 6
+f(5) = 6

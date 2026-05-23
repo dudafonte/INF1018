@@ -1,0 +1,234 @@
+1.
+
+assembly:
+.globl add 
+add:
+
+    movl    $0, %eax      # int a = 0
+
+WHILE:
+    cmpq   $0, %rdi
+    je      FORA_WHILE
+ 
+    add     (%rdi), %eax 
+    movq    8(%rdi), %rdi
+
+    jmp WHILE
+
+FORA_WHILE:
+    ret 
+
+
+c:
+#include <stdio.h>
+#define MAX 10 /* MAX tem que ser maior que 1!!!! */
+
+struct X {
+  int val;
+  struct X *next;
+};
+
+int add (struct X *x);
+
+int main (void) {
+
+  struct X x[MAX];
+  int i;
+
+  for (i=0;i<MAX;i++)
+    x[i].val = i;
+
+  for (i=MAX-1;i>1;i--)
+    x[i].next = &(x[i-1]);
+  x[0].next = &(x[MAX-1]);
+  x[1].next = NULL;
+
+  printf ("resultado de add: %d\n", add(x));
+  return 0;
+}
+
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab10-28.04/1 (main) $ gcc -Wall -no-pie -o resp ex1.s main.c
+/usr/bin/ld: warning: /tmp/cco4G4ez.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab10-28.04/1 (main) $ ./resp
+resultado de add: 45
+
+
+2.
+
+assembly:
+.globl add2
+add2:
+
+IF:
+    cmpq    $0, %rdi 
+    jne     ELSE
+    movl    $0, %eax 
+    ret
+    
+ELSE:
+    pushq   %rdi 
+    movq    8(%rdi), %rdi 
+    call    add2 
+    popq    %rdi 
+    addl    (%rdi), %eax 
+    ret
+
+
+c:
+#include <stdio.h>
+#define MAX 10 /* MAX tem que ser maior que 1!!!! */
+
+struct X {
+  int val;
+  struct X *next;
+};
+
+int add2 (struct X *x);
+
+int main (void) {
+
+  struct X x[MAX];
+  int i;
+
+  for (i=0;i<MAX;i++)
+    x[i].val = i;
+
+  for (i=MAX-1;i>1;i--)
+    x[i].next = &(x[i-1]);
+  x[0].next = &(x[MAX-1]);
+  x[1].next = NULL;
+
+  printf ("resultado de add2: %d\n", add2(x));
+  return 0;
+}
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab10-28.04/2 (main) $ gcc -Wall -no-pie -o resp2 ex2.s main.c
+/usr/bin/ld: warning: /tmp/ccSksb64.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab10-28.04/2 (main) $ ./resp2
+resultado de add2: 45
+
+
+3.
+
+assembly:
+
+.globl boo 
+boo:
+    /* Dicionário  
+    VAR     REG 
+    *px     %rdi 
+    n       %esi
+    val     %edx
+    */
+
+    /* Prologo */ 
+    pushq   %rbp
+    movq    %rsp, %rbp 
+    subq    $24, %rsp 
+    movq    %rbx, -8(%rbp)
+    movq    %r12, -16(%rbp)
+    movq    %r13, -24(%rbp)
+
+    movq    %rdi, %rbx 
+    movl    %esi, %r12d 
+    movl    %edx, %r13d 
+
+WHILE:
+    cmpl    $0, %r12d 
+    je      FORA_WHILE
+
+    movl    (%rbx), %edi
+    movl    %r13d, %esi
+    call    f
+    movl    %eax, 4(%rbx)
+
+    addq    $8, %rbx
+    decl    %r12d 
+
+    jmp WHILE
+
+FORA_WHILE:
+    movq      -8(%rbp), %rbx 
+    movq      -16(%rbp), %r12 
+    movq      -24(%rbp), %r13 
+    leave 
+    ret
+
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab10-28.04/3 (main) $ gcc -Wall -no-pie -o ex3 ex3.s ex3.c
+/usr/bin/ld: warning: /tmp/cczrQP0j.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab10-28.04/3 (main) $ ./ex3
+Antes: {1,0} {2,0} {3,0} 
+Depois: {1,2} {2,2} {3,3} 
+
+
+
+
+4.
+
+assembly:
+
+.text 
+.globl map2 
+
+map2:
+     pushq      %rbp 
+     movq       %rsp, %rbp 
+     subq       $32, %rsp 
+     movq       %rbx, -8(%rbp)
+     movq       %r12, -16(%rbp)
+     movq       %r13, -24(%rbp)
+     movq       %r14, -32(%rbp)
+
+     # salva param em registradores callee-save 
+     movq       %rdi, %rbx 
+     movq       %rsi, %r12 
+     movl       %edx, %r13d
+
+     movl       $0, %r14d    # i = 0
+
+WHILE:
+      cmpl     %r13d, %r14d
+      jge      FORA_WHILE 
+
+      movl     %r14d, %eax
+      movl     (%rbx, %rax, 4), %edi 
+      movl     $0, %eax 
+      call f 
+
+      movl      %r14d, %ecx
+      movl      %eax, (%r12, %rcx, 4)
+
+      addl      $1, %r14d 
+      jmp WHILE 
+
+FORA_WHILE:
+      movq      -8(%rbp), %rbx 
+      movq      -16(%rbp), %r12 
+      movq      -24(%rbp), %r13 
+      movq      -32(%rbp), %r14
+      leave
+      ret  
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab10-28.04/4 (main) $ gcc -Wall -no-pie -o ex4 map2.s ex4.c
+/usr/bin/ld: warning: /tmp/ccJkCI55.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+@dudafonte ➜ .../INF1018/2026-1/lab10-28.04/4 (main) $ ./ex4
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11

@@ -7,7 +7,7 @@
 
 
 
-// minhas variávies globais
+//minhas variávies globais
 // unsigned char codigo[] = {
 //     0x55,                       //pushq
 //     0x48, 0x89, 0xe5,           // mov    %rsp,%rbp
@@ -18,11 +18,8 @@
 // };
 
 unsigned char codigo[] = {
-   0x55,                           // push   %rbp
-   0x48, 0x89, 0xe5,               // mov    %rsp,%rbp
-   0xe8, 0x00, 0x00, 0x00, 0x00,   // call   9 <foo4+0x9>
-   0xc9,                           // leave
-   0xc3,                           // ret
+
+   0xe9, 0x00, 0x00, 0x00, 0x00,   // call   9 <foo4+0x9>
 };
 
 // meus includes 
@@ -68,8 +65,8 @@ int main()
     printf("f(%d) = %d\n", a, b);
     
     int offset;
-    offset = (long)add - ((long)codigo+9);       // funcao - rip;
-    *(int*)(codigo+5) = offset;
+    offset = (long)add - ((long)codigo+5);       // funcao - rip;
+    *(int*)(codigo+1) = offset;
 
     f = (funcp)codigo;              // f aponta para o código de memória
     b = f(a);                       // chama a função através do ponteiro

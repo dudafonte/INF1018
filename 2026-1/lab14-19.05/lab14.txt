@@ -1,0 +1,125 @@
+1. 
+
+#include <stdio.h>
+
+typedef union {
+    float f;
+    unsigned int i;
+} U;
+
+#define makefloat(s,e,f) ((s & 1)<<31 | (((e) & 0xff) << 23) | ((f) & 0x7fffff))
+#define getsig(x)  ((x)>>31 & 1)
+#define getexp(x)  ((x)>>23 & 0xff)
+#define getfrac(x) ((x) & 0x7fffff)
+
+float float2(float f) {
+    U u;
+    u.f = f;
+
+    unsigned int s = getsig(u.i);
+    unsigned int e = getexp(u.i);
+    unsigned int frac = getfrac(u.i);
+
+    e = e + 1;
+
+    u.i = makefloat(s, e, frac);
+    return u.f;
+}
+
+int main() {
+    printf("%f\n", float2(1.0f));   
+    printf("%f\n", float2(2.5f));   
+    printf("%f\n", float2(-3.0f));  
+    return 0;
+}
+
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab14-19.05/1 (main) $ gcc -Wall -o ex1 ex1.c 
+@dudafonte ➜ .../INF1018/2026-1/lab14-19.05/1 (main) $ ./ex1 
+2.000000
+5.000000
+-6.000000
+
+
+2.
+
+#include <stdio.h>
+#include <math.h>
+
+#define getsig(x)        ((x)>>31 & 1)
+#define getexp(x)        ((x)>>23 & 0xff)
+#define getfrac(x)       ((x) & 0x7fffff)
+#define makefloat(s,e,f) ((s & 1)<<31 | (((e) & 0xff) << 23) | ((f) & 0x7fffff))
+
+typedef union {
+  float f;
+  unsigned int i;
+} U;
+
+float int2float(int n) {
+    U u;
+    unsigned int s, e, frac;
+    unsigned int abs_n;
+
+    if (n == 0) {
+        u.i = 0;
+        return u.f;
+    }
+
+    // bit de sinal
+    s = (n < 0) ? 1 : 0;
+
+    abs_n = (n < 0) ? (unsigned int)(-(n+1)) + 1 : (unsigned int)n;
+    int E = 0;
+    unsigned int tmp = abs_n;
+    while (tmp > 1) {
+        tmp >>= 1;
+        E++;
+    }
+    // E eh o expoente real, exp armazenado=E+127
+    e = E + 127;
+
+    if (E <= 23)
+        frac = (abs_n << (23 - E)) & 0x7fffff;
+    else
+        frac = (abs_n >> (E - 23)) & 0x7fffff;
+
+    u.i = makefloat(s, e, frac);
+    return u.f;
+}
+
+
+int main() {
+   int i;
+
+   printf("\n******** int2float ****************\n");
+   i = 0;
+   printf(" %d -> %+10.4f\n", i, int2float(i));
+   i = 1;  
+   printf(" %d -> %+10.4f\n", i, int2float(i));
+   i = -1;  
+   printf(" %d -> %10.4f\n", i, int2float(i));
+   i = 0x7fffffff;  
+   printf(" %d -> %+10.4f\n", i, int2float(i));
+   i = -i;
+   printf(" %d -> %+10.4f\n", i, int2float(i));
+   i = 12345;
+   printf(" %d -> %+10.4f\n", i, int2float(i));
+   i = -12345;
+   printf(" %d -> %+10.4f\n", i, int2float(i));
+   return 0;
+}
+
+SAÍDA:
+@dudafonte ➜ .../INF1018/2026-1/lab14-19.05/2 (main) $ gcc -Wall -o ex2 ex2.c 
+@dudafonte ➜ .../INF1018/2026-1/lab14-19.05/2 (main) $ ./ex2
+
+******** int2float ****************
+ 0 ->    +0.0000
+ 1 ->    +1.0000
+ -1 ->    -1.0000
+ 2147483647 -> +2147483520.0000
+ -2147483647 -> -2147483520.0000
+ 12345 -> +12345.0000
+ -12345 -> -12345.0000

