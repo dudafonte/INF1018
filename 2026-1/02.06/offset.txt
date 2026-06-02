@@ -1,0 +1,37 @@
+descobrindo o endereço das funções atravésa de RIP e offset 
+
+
+1. Descobrindo endereço de f1: 
+
+- olhar no .asm onde é chamado o f1 <call f1> 
+é chamado na linha 133 (endereço: 1178)
+
+RIP de 1178 é:   117D 
+opcode de 1178:  e8 
+offset de 11778: cc ff ff ff
+
+- fazer a soma RIP + OFFSET 
+RIP + OFFSET = endereço 
+117D + cc ff ff ff = 1149
+
+
+  FF FF FF FF FF FF FF CC 
++ 00 00 00 00 00 00 11 7D 
+--------------------------
+  00 00 00 00 00 00 11 49 
+
+endereço de f1: 1149 
+
+
+2. Descobrindo o endereço do offset do call f1:
+
+Só somar 1 byte ao endereço do <call f1>
+
+endereço do opcode de <call f1> = 1178 
+endereço de offset de <call f1> = endereço de opcode de <call f1> + 1 byte = 1179
+ 
+
+
+comando para saber os símbolos que estão contidos em um programa 
+- gcc -c -Wall -Wextra -o nome_do_arq.o nome_do_arq.c
+- "nm <nome_do_arq.o>"

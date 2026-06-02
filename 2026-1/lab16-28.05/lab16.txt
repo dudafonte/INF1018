@@ -1,0 +1,14 @@
+1.
+
+SAÍDA:
+@dudafonte ➜ /workspaces/INF1018/2026-1/lab16-28.05 (main) $ gcc -c -Wall -Wextra -o temp1.o temp1.c
+@dudafonte ➜ /workspaces/INF1018/2026-1/lab16-28.05 (main) $ gcc -c -Wall -Wextra -o temp2.o temp2.c
+@dudafonte ➜ /workspaces/INF1018/2026-1/lab16-28.05 (main) $ nm temp1.o
+0000000000000000 D a
+                 U foo
+0000000000000000 T main
+                 U printf
+@dudafonte ➜ /workspaces/INF1018/2026-1/lab16-28.05 (main) $ nm temp2.o
+                 U a
+0000000000000000 D b
+0000000000000000 T foo
